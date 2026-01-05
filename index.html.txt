@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Vua Nổ Hũ Miễn Phí</title>
+    <style>
+        body { background: #1a1a1a; color: white; text-align: center; font-family: sans-serif; }
+        .jackpot-ui { font-size: 45px; color: gold; text-shadow: 0 0 10px orange; margin: 20px; }
+        .reels { display: flex; justify-content: center; gap: 15px; margin: 20px; }
+        .reel { width: 100px; height: 120px; background: white; color: black; font-size: 60px; 
+                display: flex; align-items: center; justify-content: center; border-radius: 10px; border: 4px solid gold; }
+        button { padding: 15px 40px; font-size: 20px; background: red; color: white; border: none; cursor: pointer; border-radius: 10px; font-weight: bold; }
+        button:disabled { background: #555; }
+    </style>
+</head>
+<body>
+    <h1>🎰 SLOT MACHINE 🎰</h1>
+    <div class="jackpot-ui">HŨ: <span id="jp-val">0</span></div>
+    <h3 id="bal-val">Ví: 0</h3>
+
+    <div class="reels">
+        <div class="reel" id="r1">?</div>
+        <div class="reel" id="r2">?</div>
+        <div class="reel" id="r3">?</div>
+    </div>
+
+    <button id="spinBtn" onclick="spin()">QUAY (100đ)</button>
+
+    <script>
+        const user = "Player_" + Math.floor(Math.random()*1000);
+        
+        async function load() {
+            const res = await fetch(`/api/init/${user}`);
+            const data = await res.json();
+            document.getElementById('jp-val').innerText = data.jackpot.toLocaleString();
+            document.getElementById('bal-val').innerText = "Ví: " + data.balance.toLocaleString() + " xu";
+        }
+        load();
+
+        async function spin() {
+            const btn = document.getElementById('spinBtn');
+            btn.disabled = true;
+            
+            const res = await fetch('/api/spin', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({ username: user })
+            });
+            const data = await res.json();
+
+            let count = 0;
+            const anim = setInterval(() => {
+                document.querySelectorAll('.reel').forEach(el => el.innerText = ['🍎','🍋','💎'][Math.floor(Math.random()*3)]);
+                count++;
+                if(count > 12) {
+                    clearInterval(anim);
+                    document.getElementById('r1').innerText = data.reels[0];
+                    document.getElementById('r2').innerText = data.reels[1];
+                    document.getElementById('r3').innerText = data.reels[2];
+                    document.getElementById('jp-val').innerText = data.jackpot.toLocaleString();
+                    document.getElementById('bal-val').innerText = "Ví: " + data.balance.toLocaleString() + " xu";
+                    if(data.isJackpot) alert("🎉 NỔ HŨ KHỔNG LỒ! 🎉");
+                    btn.disabled = false;
+                }
+            }, 80);
+        }
+    </script>
+</body>
+</html>
